@@ -1194,6 +1194,10 @@ class KineticsFamily(Database):
         # Process the entries that are stored in the reverse direction of the
         # family definition
         for entry in reverse_entries:
+            if entry.facet is None:
+                label = entry.metal
+            else:
+                label = entry.metal + entry.facet
 
             tentries[entry.index].item.is_forward = False
 
@@ -1219,11 +1223,11 @@ class KineticsFamily(Database):
                 # Clear atom labels to avoid effects on thermo generation, ok because this is a deepcopy
                 reactant.molecule[0].clear_labeled_atoms()
                 reactant.generate_resonance_structures()
-                reactant.thermo = thermo_database.get_thermo_data(reactant, training_set=True)
+                reactant.thermo = thermo_database.get_thermo_data(reactant, training_set=True, metal_to_scale_to=label)
             for product in item.products:
                 product.molecule[0].clear_labeled_atoms()
                 product.generate_resonance_structures()
-                product.thermo = thermo_database.get_thermo_data(product, training_set=True)
+                product.thermo = thermo_database.get_thermo_data(product, training_set=True, metal_to_scale_to=label)
             # Now that we have the thermo, we can get the reverse k(T)
             item.kinetics = data
             data = item.generate_reverse_rate_coefficient()
@@ -1258,6 +1262,7 @@ class KineticsFamily(Database):
                 reference=entry.reference,
                 short_desc="Rate rule generated from training reaction {0}. ".format(entry.index) + entry.short_desc,
                 long_desc="Rate rule generated from training reaction {0}. ".format(entry.index) + entry.long_desc,
+                metal=entry.metal
             )
             new_entry.data.comment = "From training reaction {1} used for {0}".format(';'.join([g.label for g in template]), entry.index)
 
@@ -3829,12 +3834,18 @@ class KineticsFamily(Database):
                 for j, react in enumerate(r.item.reactants):
                     if rxns[i].reactants[j].thermo is None:
                         react.generate_resonance_structures()
-                        rxns[i].reactants[j].thermo = tdb.get_thermo_data(react)
+                        if r.metal:
+                            rxns[i].reactants[j].thermo = tdb.get_thermo_data(react, metal=r.metal)
+                        else:
+                            rxns[i].reactants[j].thermo = tdb.get_thermo_data(react)
 
                 for j, react in enumerate(r.item.products):
                     if rxns[i].products[j].thermo is None:
                         react.generate_resonance_structures()
-                        rxns[i].products[j].thermo = tdb.get_thermo_data(react)
+                        if r.metal:
+                            rxns[i].products[j].thermo = tdb.get_thermo_data(react, metal=r.metal)
+                        else:
+                            rxns[i].products[j].thermo = tdb.get_thermo_data(react)
 
             rxns[i].kinetics = r.data
             rxns[i].rank = r.rank
@@ -3911,7 +3922,10 @@ class KineticsFamily(Database):
                             if r.thermo is None:
                                 therm_spc = deepcopy(r)
                                 therm_spc.generate_resonance_structures()
-                                r.thermo = tdb.get_thermo_data(therm_spc)
+                                if r.metal:
+                                    r.thermo = tdb.get_thermo_data(therm_spc, metal=r.metal)
+                                else:
+                                    r.thermo = tdb.get_thermo_data(therm_spc)
 
                     rev_rxns.append(rrev)
 
@@ -3952,7 +3966,10 @@ class KineticsFamily(Database):
                         if r.thermo is None:
                             therm_spc = deepcopy(r)
                             therm_spc.generate_resonance_structures()
-                            r.thermo = tdb.get_thermo_data(therm_spc)
+                            if r.metal:
+                                r.thermo = tdb.get_thermo_data(therm_spc, metal=r.metal)
+                            else:
+                                r.thermo = tdb.get_thermo_data(therm_spc)
                 rxns[i] = rrev
 
         if self.own_reverse and get_reverse:
