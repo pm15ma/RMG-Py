@@ -1380,15 +1380,10 @@ class ThermoDatabase(object):
 
         if binding_energies is None:
             # Use Pt(111) reference that surfaceThermoPt111 was calculated on if no binding energies are provided
-            binding_energies = {
-                'C': rmgpy.quantity.Energy(-7.025, 'eV/molecule'),
-                'H': rmgpy.quantity.Energy(-2.754, 'eV/molecule'),
-                'O': rmgpy.quantity.Energy(-3.811, 'eV/molecule'),
-                'N': rmgpy.quantity.Energy(-4.632, 'eV/molecule'),
-            }
+            binding_energies = metal_db.get_binding_energies('Pt111')
         elif binding_energies is str:
             # Want to load the binding energies from the database
-            metal_db.find_binding_energies(binding_energies)
+            binding_energies = metal_db.find_binding_energies(binding_energies)
 
         for element, energy in binding_energies.items():
             binding_energies[element] = rmgpy.quantity.Energy(binding_energies[element])
