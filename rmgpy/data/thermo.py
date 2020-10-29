@@ -1390,7 +1390,7 @@ class ThermoDatabase(object):
 
         self.binding_energies = binding_energies
 
-    def correct_binding_energy(self, thermo, species, metal_to_scale_to=None, metal_to_scale_from=None):
+    def correct_binding_energy(self, thermo, species, metal_to_scale_from=None, metal_to_scale_to=None):
         """
         Changes the provided thermo, by applying a linear scaling relation
         to correct the adsorption energy.
