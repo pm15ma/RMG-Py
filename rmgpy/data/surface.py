@@ -184,9 +184,15 @@ class MetalDatabase(object):
         self.libraries['surface'].load(os.path.join(path, 'libraries', 'metal.py'))
 
     def get_binding_energies(self, metal_label):
+        """
+        Get a metal's binding energies from its label
+        """
         return self.libraries['surface'].get_binding_energies(metal_label)
 
     def get_surface_site_density(self, metal_label):
+        """
+        Get a metal's surface site desnity from its label
+        """
         return self.libraries['surface'].get_surface_site_density(metal_label)
 
     def get_all_entries_on_metal(self, metal):
