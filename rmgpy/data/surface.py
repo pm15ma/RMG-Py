@@ -42,7 +42,7 @@ import rmgpy.quantity
 
 def save_entry(f, entry):
     """
-    Write a Pythonic string representation of the given `entry` in the solvation
+    Write a Pythonic string representation of the given `entry` in the metal
     database to the file object `f`.
     """
     f.write('entry(\n')
@@ -50,7 +50,7 @@ def save_entry(f, entry):
     f.write('    label = "{0}",\n'.format(entry.label))
     f.write('    bindingEnergies = {\n')
     for key, value in entry.bindingEnergies.items():
-        f.write("        '" + key + "':" + str(value) + ",\n")
+        f.write(f"        {key!r}: {value!r},\n")
     f.write("    }\n")
     f.write('    surfaceSiteDensity = {0},\n'.format(entry.surfaceSiteDesnity))
     f.write('    facet = "{0}",\n'.format(entry.facet))
@@ -78,7 +78,7 @@ class MetalLibrary(Database):
                    label,
                    metal='',
                    facet='',
-                   surfaceSiteDensity=(),
+                   surfaceSiteDensity=None,
                    bindingEnergies=None,
                    shortDesc='',
                    longDesc='',
@@ -87,14 +87,25 @@ class MetalLibrary(Database):
         Method for parsing entries in database files.
         Note that these argument names are retained for backward compatibility.
         """
+        if bindingEnergies:
+            binding_energies = dict()
+            for element, energy in bindingEnergies.items():
+                binding_energies[element] = rmgpy.quantity.Energy(energy)
+        else:
+            binding_energies = None
+        
+        if surfaceSiteDensity:
+            surface_site_density = rmgpy.quantity.SurfaceConcentration(*surfaceSiteDensity)
+        else:
+            surface_site_density = None
 
         self.entries[label] = Entry(
             index=index,
             label=label,
             metal=metal,
             facet=facet,
-            surface_site_density=surfaceSiteDensity,
-            binding_energies=bindingEnergies or dict(),
+            surface_site_density=surface_site_density,
+            binding_energies=binding_energies,
             short_desc=shortDesc,
             long_desc=longDesc.strip(),
         )
@@ -113,34 +124,46 @@ class MetalLibrary(Database):
 
     def get_binding_energies(self, label):
         """
-        Get a metal's binding energies from its label
+        Get a metal's binding energies from its label.
+
+        Raises DatabaseError (rather than returning None) if it can't be found.
         """
         try:
-            return self.entries[label].binding_energies
+            binding_energies = self.entries[label].binding_energies
         except KeyError:
             raise DatabaseError(f'Metal {label!r} not found in metal library database.')
+        if binding_energies is None:
+            raise DatabaseError(f'Metal {label!r} has no binding energies in metal library database.')
+        return binding_energies
 
     def get_surface_site_density(self, label):
         """
-        Get a metal's surface site desnity from its label
+        Get a metal's surface site desnity from its label.
+
+        Raises DatabaseError (rather than returning None) if it can't be found.
         """
         try:
-            return self.entries[label].surface_site_density
+            surface_site_density = self.entries[label].surface_site_density
         except KeyError:
             raise DatabaseError(f'Metal {label!r} not found in metal library database.')
+        if surface_site_density is None:
+            raise DatabaseError(f'Metal {label!r} has no surface site density in metal library database.')
+        return surface_site_density
 
     def get_all_entries_on_metal(self, metal_name):
         """
         Get all entries from the database that are on a certain metal, for any facet,
         returning the labels.
+
+        Raises DatabaseError (rather than an empty list) if none can be found.
         """
         matches = []
         for label, entry in self.entries.items():
             if entry.metal == metal_name:
                 matches.append(label)
 
-        if len(matches) is 0:
-            raise DatabaseError('Metal {0!r} not found in database'.format(metal_name))
+        if len(matches) == 0:
+            raise DatabaseError(f'Metal {metal_name!r} not found in database.')
 
         return matches
 
@@ -236,10 +259,6 @@ class MetalDatabase(object):
                 # just picking the first one for now...
                 logging.warning(f"Found multiple binding energies for {metal!r}. Using {metal_entry_matches[0]!r}.")
                 metal_binding_energies = self.libraries['surface'].get_binding_energies(metal_entry_matches[0])
-
-        for element, energy in metal_binding_energies.items():
-            metal_binding_energies[element] = rmgpy.quantity.Energy(energy)
-            # ToDo: this conversion should be done once when loading the database, not every time we query it.
 
         return metal_binding_energies
 
