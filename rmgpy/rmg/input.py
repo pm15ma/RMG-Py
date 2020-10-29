@@ -34,7 +34,7 @@ from copy import deepcopy
 import numpy as np
 
 from rmgpy import settings
-from rmgpy.exceptions import InputError
+from rmgpy.exceptions import DatabaseError, InputError
 from rmgpy.molecule import Molecule
 from rmgpy.quantity import Quantity, Energy, RateCoefficient, SurfaceConcentration
 from rmgpy.rmg.model import CoreEdgeReactionModel
@@ -109,28 +109,32 @@ def catalyst_properties(bindingEnergies=None,
     metal_db = MetalDatabase()
     metal_db.load(os.path.join(settings['database.directory'], 'surface'))
 
-    if isinstance(metal, str):
+    if metal and (bindingEnergies or surfaceSiteDensity):
+        raise InputError("In catalyst_properties section you should only specify a 'metal' shortcut " 
+                         "or the surfaceSiteDensity and bindingEnergies, but not both.")
+
+    if metal:
         try:
+            logging.info("Using catalyst surface properties from metal %r.", metal)
             bindingEnergies = metal_db.get_binding_energies(metal)
-            rmg.bindingEnergies = bindingEnergies
-            logging.info("Using binding energies:\n{0!r}".format(rmg.bindingEnergies))
             surfaceSiteDensity = metal_db.get_surface_site_density(metal)
-            logging.info("Using surface site density of {0!r}".format(surfaceSiteDensity))
-        except:
+        except DatabaseError:
             logging.error('Metal {} missing from surface library'.format(metal))
             raise
 
     if bindingEnergies is None:
-        rmg.bindingEnergies = metal_db.get_binding_energies("Pt111")
-        logging.info("Using default binding energies for Pt(111):\n{0!r}".format(rmg.bindingEnergies))
-    else:
-        rmg.binding_energies = convert_binding_energies(bindingEnergies)
+        bindingEnergies = metal_db.get_binding_energies("Pt111")
+        logging.info("Using default binding energies, Pt(111)")
+    
+    rmg.binding_energies = convert_binding_energies(bindingEnergies)
+    logging.info("Using binding energies:\n%r", rmg.binding_energies)
 
     if surfaceSiteDensity is None:
         surfaceSiteDensity = metal_db.get_surface_site_density("Pt111")
-        logging.info("Using default surface site density of {0!r}".format(surfaceSiteDensity))
-    surfaceSiteDensity = SurfaceConcentration(*surfaceSiteDensity)
-    rmg.surface_site_density = surfaceSiteDensity
+        logging.info("Using default surface site density, Pt(111)")
+
+    rmg.surface_site_density = SurfaceConcentration(*surfaceSiteDensity)
+    logging.info("Using surface site density: %r", rmg.surface_site_density)
 
 
 def convert_binding_energies(binding_energies):
