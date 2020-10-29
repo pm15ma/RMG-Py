@@ -133,21 +133,24 @@ def catalyst_properties(bindingEnergies=None,
     rmg.surface_site_density = surfaceSiteDensity
 
 
-def convert_binding_energies(bindingEnergies):
+def convert_binding_energies(binding_energies):
     """
-    Process bindingEnergies from the input file.
+    Process binding_energies dictionary from the input file
+    
+    It converts the values into Energy quantities, and checks that 
+    all elements C,H,O, and N are present.
 
-    :param bindingEnergies: a dictionary of element symbol: binding energy pairs
+    :param binding_energies: a dictionary of element symbol: binding energy pairs
     :return: the processed and checked dictionary
     """
-    if not isinstance(bindingEnergies, dict):
+    if not isinstance(binding_energies, dict):
         raise InputError("bindingEnergies should be None (for default) or a dict.")
     new_dict = {}
     for element in 'CHON':
         try:
-            new_dict[element] = Energy(bindingEnergies[element])
+            new_dict[element] = Energy(binding_energies[element])
         except KeyError:
-            logging.error('Element {} missing from bindingEnergies dictionary'.format(element))
+            logging.error('Element {} missing from binding energies dictionary'.format(element))
             raise
     return new_dict
 
