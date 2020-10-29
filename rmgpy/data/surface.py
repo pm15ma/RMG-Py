@@ -112,19 +112,26 @@ class MetalLibrary(Database):
 
     def get_binding_energies(self, label):
         """
-        Get a metal's binding energies from its name
+        Get a metal's binding energies from its label
         """
-        return self.entries[label].binding_energies
+        try:
+            return self.entries[label].binding_energies
+        except KeyError:
+            raise DatabaseError(f'Metal {label!r} not found in metal library database.')
 
     def get_surface_site_density(self, label):
         """
-        Get a metal's surface site desnity from its name
+        Get a metal's surface site desnity from its label
         """
-        return self.entries[label].surface_site_density
+        try:
+            return self.entries[label].surface_site_density
+        except KeyError:
+            raise DatabaseError(f'Metal {label!r} not found in metal library database.')
 
     def get_all_entries_on_metal(self, metal_name):
         """
-        Get all entries from the database that are on a certain metal
+        Get all entries from the database that are on a certain metal, for any facet,
+        returning the labels.
         """
         matches = []
         for label, entry in self.entries.items():
@@ -176,33 +183,18 @@ class MetalDatabase(object):
 
         self.libraries['surface'].load(os.path.join(path, 'libraries', 'metal.py'))
 
-    def get_binding_energies(self, metal_name):
-        try:
-            metal_data = self.libraries['surface'].get_binding_energies(metal_name)
-        except:
-            raise DatabaseError('Metal {0!r} not found in database'.format(metal_name))
-        return metal_data
+    def get_binding_energies(self, metal_label):
+        return self.libraries['surface'].get_binding_energies(metal_label)
 
-    def get_surface_site_density(self, metal_name):
-        try:
-            metal_data = self.libraries['surface'].get_surface_site_density(metal_name)
-        except:
-            raise DatabaseError('Metal {0!r} not found in database'.format(metal_name))
-        return metal_data
+    def get_surface_site_density(self, metal_label):
+        return self.libraries['surface'].get_surface_site_density(metal_label)
 
-    def get_all_entries_on_metal(self, metal_name):
+    def get_all_entries_on_metal(self, metal):
         """
-        Get all entries from the database that are on a certain metal
+        Get all entries from the database that are on a certain metal, on any facet,
+        returning the labels.
         """
-        matches = []
-        for label, entry in self.libraries['surface'].entries.items():
-            if entry.metal == str(metal_name):
-                matches.append(entry.label)
-
-        if len(matches) is 0:
-            raise DatabaseError('Metal {0!r} not found in database'.format(metal_name))
-
-        return matches
+        return self.libraries['surface'].get_all_entries_on_metal(metal)
 
     def find_binding_energies(self, metal):
         """
