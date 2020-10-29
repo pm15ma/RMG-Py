@@ -1666,7 +1666,7 @@ class ThermoDatabase(object):
 
         return None
 
-    def get_all_thermo_data(self, species, metal=None):
+    def get_all_thermo_data(self, species):
         """
         Return all possible sets of thermodynamic parameters for a given
         :class:`Species` object `species`. The hits from the depository come
