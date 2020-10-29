@@ -1397,7 +1397,8 @@ class ThermoDatabase(object):
 
         :param thermo: starting thermo data
         :param species: the species (which is an adsorbate)
-        :param metal: a tuple of the metal you're scaling from and the metal you want to scale to
+        :param metal_to_scale_from: the metal you want to scale from (string eg. 'Pt111' or None)
+        :param metal_to_scale_to: the metal you want to scale to (string e.g 'Pt111' or None)
         :return: corrected thermo
         """
         metal_db = MetalDatabase()
