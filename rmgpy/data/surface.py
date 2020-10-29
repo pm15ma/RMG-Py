@@ -78,7 +78,7 @@ class MetalLibrary(Database):
                    metal='',
                    facet='',
                    surfaceSiteDensity=(),
-                   bindingEnergies={},
+                   bindingEnergies=None,
                    shortDesc='',
                    longDesc='',
                    ):
@@ -93,7 +93,7 @@ class MetalLibrary(Database):
             metal=metal,
             facet=facet,
             surface_site_density=surfaceSiteDensity,
-            binding_energies=bindingEnergies,
+            binding_energies=bindingEnergies or dict(),
             short_desc=shortDesc,
             long_desc=longDesc.strip(),
         )
