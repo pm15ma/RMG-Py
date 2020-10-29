@@ -116,24 +116,26 @@ def catalyst_properties(bindingEnergies=None,
     if metal:
         try:
             logging.info("Using catalyst surface properties from metal %r.", metal)
-            bindingEnergies = metal_db.get_binding_energies(metal)
-            surfaceSiteDensity = metal_db.get_surface_site_density(metal)
+            rmg.binding_energies = metal_db.get_binding_energies(metal)
+            rmg.surface_site_density = metal_db.get_surface_site_density(metal)
         except DatabaseError:
-            logging.error('Metal {} missing from surface library'.format(metal))
+            logging.error('Metal %r missing from surface library', metal)
             raise
-
-    if bindingEnergies is None:
-        bindingEnergies = metal_db.get_binding_energies("Pt111")
-        logging.info("Using default binding energies, Pt(111)")
+    else: # metal not specified
+        if bindingEnergies is None:
+            rmg.binding_energies = metal_db.get_binding_energies("Pt111")
+            logging.info("Using default binding energies, Pt(111)")
+        else:
+            rmg.binding_energies = convert_binding_energies(bindingEnergies)
     
-    rmg.binding_energies = convert_binding_energies(bindingEnergies)
+
+        if surfaceSiteDensity is None:
+            rmg.surface_site_density = metal_db.get_surface_site_density("Pt111")
+            logging.info("Using default surface site density, Pt(111)")
+        else:
+            rmg.surface_site_density = SurfaceConcentration(*surfaceSiteDensity)
+
     logging.info("Using binding energies:\n%r", rmg.binding_energies)
-
-    if surfaceSiteDensity is None:
-        surfaceSiteDensity = metal_db.get_surface_site_density("Pt111")
-        logging.info("Using default surface site density, Pt(111)")
-
-    rmg.surface_site_density = SurfaceConcentration(*surfaceSiteDensity)
     logging.info("Using surface site density: %r", rmg.surface_site_density)
 
 
