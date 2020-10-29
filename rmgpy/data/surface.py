@@ -32,6 +32,7 @@
 """
 import os.path
 import re
+import logging
 
 from rmgpy.data.base import Database, Entry, DatabaseError
 import rmgpy.quantity
@@ -136,7 +137,7 @@ class MetalLibrary(Database):
         matches = []
         for label, entry in self.entries.items():
             if entry.metal == metal_name:
-                matches.append(entry.label)
+                matches.append(label)
 
         if len(matches) is 0:
             raise DatabaseError('Metal {0!r} not found in database'.format(metal_name))
@@ -180,7 +181,6 @@ class MetalDatabase(object):
         
         Load the metal library
         """
-
         self.libraries['surface'].load(os.path.join(path, 'libraries', 'metal.py'))
 
     def get_binding_energies(self, metal_label):
@@ -208,34 +208,38 @@ class MetalDatabase(object):
         best guess of binding energies.
         """
         if metal is None:
-            # assume we want the binding energies provided in the input file
             raise DatabaseError("Cannot search for nothing.")
+        assert isinstance(metal, str)
 
-        elif isinstance(metal, str):
-            facet = re.search('\d+', metal)
-            if facet is not None:
-                try:
-                    metal_binding_energies = self.libraries['surface'].get_binding_energies(metal)
-                except:
-                    # no exact match was found, so continue on as if no facet was given
-                    # todo: add warning message or something
-                    facet = None
+        facet = re.search('\d+', metal)
 
-            if facet is None:
-                # no facet was specified, so assume 111? don't want to hard code this in...
-                metal_entry_matches = self.libraries['surface'].get_all_entries_on_metal(metal)
+        if facet is not None:
+            try:
+                metal_binding_energies = self.libraries['surface'].get_binding_energies(metal)
+            except DatabaseError:
+                # no exact match was found, so continue on as if no facet was given
+                logging.warning("Requested metal %r not found in database.", metal)
+                facet = None
+                metal = metal[:facet.span()[0]]
+                logging.warning("Searching for generic %r.", metal)
 
-                if len(metal_entry_matches) is 1:
-                    metal_binding_energies = self.libraries['surface'].get_binding_energies(metal_entry_matches[0])
-                elif metal_entry_matches is None:  # no matches
-                    raise DatabaseError("No metal {} found in metal database".format(metal))
-                else:  # multiple matches
-                    # average the binding energies together? just pick the first one?
-                    # just picking the first one for now...
-                    metal_binding_energies = self.libraries['surface'].get_binding_energies(metal_entry_matches[0])
+        if facet is None:
+            # no facet was specified, so use the first
+            metal_entry_matches = self.libraries['surface'].get_all_entries_on_metal(metal)
 
-            for element, energy in metal_binding_energies.items():
-                metal_binding_energies[element] = rmgpy.quantity.Energy(metal_binding_energies[element])
+            if len(metal_entry_matches) == 1:
+                metal_binding_energies = self.libraries['surface'].get_binding_energies(metal_entry_matches[0])
+            elif metal_entry_matches is None:  # no matches
+                raise DatabaseError(f"No metal {metal} found in metal database.")
+            else:  # multiple matches
+                # average the binding energies together? just pick the first one?
+                # just picking the first one for now...
+                logging.warning(f"Found multiple binding energies for {metal!r}. Using {metal_entry_matches[0]!r}.")
+                metal_binding_energies = self.libraries['surface'].get_binding_energies(metal_entry_matches[0])
+
+        for element, energy in metal_binding_energies.items():
+            metal_binding_energies[element] = rmgpy.quantity.Energy(energy)
+            # ToDo: this conversion should be done once when loading the database, not every time we query it.
 
         return metal_binding_energies
 
