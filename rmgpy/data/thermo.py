@@ -1419,8 +1419,8 @@ class ThermoDatabase(object):
             'N': rmgpy.quantity.Energy(0.0, 'eV/molecule'),
         }
 
-        for element, deltaEnergy in delta_atomic_adsorption_energy.items():
-            deltaEnergy.value_si = metal_to_scale_to_binding_energies[element].value_si - metal_to_scale_from_binding_energies[element].value_si
+        for element, delta_energy in delta_atomic_adsorption_energy.items():
+            delta_energy.value_si = metal_to_scale_to_binding_energies[element].value_si - metal_to_scale_from_binding_energies[element].value_si
 
         if all(v.value_si == 0 for v in delta_atomic_adsorption_energy.values()):
             return thermo
