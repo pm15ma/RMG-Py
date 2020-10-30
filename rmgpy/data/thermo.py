@@ -1397,6 +1397,9 @@ class ThermoDatabase(object):
         :param metal_to_scale_to: the metal you want to scale to (string e.g 'Pt111' or None)
         :return: corrected thermo
         """
+        if metal_to_scale_from == metal_to_scale_to:
+            return thermo
+
         metal_db = rmgpy.data.rmg.database.surface
 
         if metal_to_scale_to is None:
@@ -1418,6 +1421,9 @@ class ThermoDatabase(object):
 
         for element, deltaEnergy in delta_atomic_adsorption_energy.items():
             deltaEnergy.value_si = metal_to_scale_to_binding_energies[element].value_si - metal_to_scale_from_binding_energies[element].value_si
+
+        if all(v.value_si == 0 for v in delta_atomic_adsorption_energy.values()):
+            return thermo
 
         molecule = species.molecule[0]
         # only want/need to do one resonance structure
