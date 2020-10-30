@@ -1191,7 +1191,7 @@ class ThermoDatabase(object):
                 continue
             self.groups['ring'].generic_nodes.append(label)
 
-    def get_thermo_data(self, species, metal_to_scale_from=None, metal_to_scale_to=None, training_set=None):
+    def get_thermo_data(self, species, metal_to_scale_to=None, training_set=None):
         """
         Return the thermodynamic parameters for a given :class:`Species`
         object `species`. This function first searches the loaded libraries
