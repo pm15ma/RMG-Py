@@ -3834,12 +3834,12 @@ class KineticsFamily(Database):
                 for j, react in enumerate(r.item.reactants):
                     if rxns[i].reactants[j].thermo is None:
                         react.generate_resonance_structures()
-                        rxns[i].reactants[j].thermo = tdb.get_thermo_data(react, metal_to_scale_from=r.metal)
+                        rxns[i].reactants[j].thermo = tdb.get_thermo_data(react, metal_to_scale_to=r.metal)
 
                 for j, react in enumerate(r.item.products):
                     if rxns[i].products[j].thermo is None:
                         react.generate_resonance_structures()
-                        rxns[i].products[j].thermo = tdb.get_thermo_data(react, metal_to_scale_from=r.metal)
+                        rxns[i].products[j].thermo = tdb.get_thermo_data(react, metal_to_scale_to=r.metal)
 
             rxns[i].kinetics = r.data
             rxns[i].rank = r.rank
@@ -3917,7 +3917,7 @@ class KineticsFamily(Database):
                                 therm_spc = deepcopy(r)
                                 therm_spc.generate_resonance_structures()
                                 if r.metal:
-                                    r.thermo = tdb.get_thermo_data(therm_spc, metal=r.metal)
+                                    r.thermo = tdb.get_thermo_data(therm_spc, metal_to_scale_to=r.metal)
                                 else:
                                     r.thermo = tdb.get_thermo_data(therm_spc)
 
@@ -3961,7 +3961,7 @@ class KineticsFamily(Database):
                             therm_spc = deepcopy(r)
                             therm_spc.generate_resonance_structures()
                             if r.metal:
-                                r.thermo = tdb.get_thermo_data(therm_spc, metal=r.metal)
+                                r.thermo = tdb.get_thermo_data(therm_spc, metal_to_scale_to=r.metal)
                             else:
                                 r.thermo = tdb.get_thermo_data(therm_spc)
                 rxns[i] = rrev
