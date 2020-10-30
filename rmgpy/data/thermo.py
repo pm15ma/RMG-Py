@@ -1361,24 +1361,24 @@ class ThermoDatabase(object):
         # Return the resulting thermo parameters
         return thermo0
 
-    def set_binding_energies(self, binding_energies=None):
+    def set_binding_energies(self, binding_energies='Pt111'):
         """
         Sets and stores the atomic binding energies specified in the input file.
 
+        All adsorbates will be scaled to use these elemental binding energies.
+
         Args:
             binding_energies (dict, optional): the desired binding energies with
-                elements as keys and binding energy/unit tuples as values
+                elements as keys and binding energy/unit tuples (or Energy 
+                quantities) as values
 
         Returns:
             None, stores result in self.binding_energies
         """
-        metal_db = rmgpy.data.rmg.database.surface
-
-        if binding_energies is None:
-            # Use Pt(111) reference that surfaceThermoPt111 was calculated on if no binding energies are provided
-            binding_energies = metal_db.get_binding_energies('Pt111')
-        elif binding_energies is str:
+    
+        if isinstance(binding_energies, str):
             # Want to load the binding energies from the database
+            metal_db = rmgpy.data.rmg.database.surface
             binding_energies = metal_db.find_binding_energies(binding_energies)
 
         for element, energy in binding_energies.items():
