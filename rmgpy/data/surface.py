@@ -281,21 +281,3 @@ class MetalDatabase(object):
             os.mkdir(path)
         for library in self.libraries.keys():
             self.libraries[library].save(os.path.join(path, library + '.py'))
-
-    def load_old(self, path):
-        """
-        Load the old RMG metal database from the given `path` on disk, where
-        `path` points to the top-level folder of the old RMG database.
-        """
-
-        raise NotImplementedError()
-
-    def save_old(self, path):
-        """
-        Save the old metal database to the given `path` on disk, where
-        `path` points to the top-level folder of the old RMG database.
-        """
-        # Depository not used in old database, so it is not saved
-
-        raise NotImplementedError()
-
