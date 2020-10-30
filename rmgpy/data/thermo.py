@@ -1422,7 +1422,7 @@ class ThermoDatabase(object):
         for element, delta_energy in delta_atomic_adsorption_energy.items():
             delta_energy.value_si = metal_to_scale_to_binding_energies[element].value_si - metal_to_scale_from_binding_energies[element].value_si
 
-        if all(v.value_si == 0 for v in delta_atomic_adsorption_energy.values()):
+        if all(-0.01 < v.value_si < 0.01 for v in delta_atomic_adsorption_energy.values()):
             return thermo
 
         molecule = species.molecule[0]
