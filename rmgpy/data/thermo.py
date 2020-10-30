@@ -846,9 +846,6 @@ class ThermoDatabase(object):
         }
         self.global_context = {}
 
-        # Catalyst properties
-        self.set_binding_energies()
-
     def __reduce__(self):
         """
         A helper function used when pickling a ThermoDatabase object.
@@ -1375,8 +1372,7 @@ class ThermoDatabase(object):
         Returns:
             None, stores result in self.binding_energies
         """
-        metal_db = MetalDatabase()
-        metal_db.load(os.path.join(settings['database.directory'], 'surface'))
+        metal_db = rmgpy.data.rmg.database.surface
 
         if binding_energies is None:
             # Use Pt(111) reference that surfaceThermoPt111 was calculated on if no binding energies are provided
@@ -1386,7 +1382,7 @@ class ThermoDatabase(object):
             binding_energies = metal_db.find_binding_energies(binding_energies)
 
         for element, energy in binding_energies.items():
-            binding_energies[element] = rmgpy.quantity.Energy(binding_energies[element])
+            binding_energies[element] = rmgpy.quantity.Energy(energy)
 
         self.binding_energies = binding_energies
 
@@ -1401,8 +1397,7 @@ class ThermoDatabase(object):
         :param metal_to_scale_to: the metal you want to scale to (string e.g 'Pt111' or None)
         :return: corrected thermo
         """
-        metal_db = MetalDatabase()
-        metal_db.load(os.path.join(settings['database.directory'], 'surface'))
+        metal_db = rmgpy.data.rmg.database.surface.get_binding_energies
 
         if metal_to_scale_to is None:
             metal_to_scale_to_binding_energies = self.binding_energies
