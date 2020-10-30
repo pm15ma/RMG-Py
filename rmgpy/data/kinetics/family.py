@@ -1194,11 +1194,6 @@ class KineticsFamily(Database):
         # Process the entries that are stored in the reverse direction of the
         # family definition
         for entry in reverse_entries:
-            if entry.facet is None:
-                label = entry.metal
-            else:
-                label = entry.metal + entry.facet
-
             tentries[entry.index].item.is_forward = False
 
             assert isinstance(entry.data, Arrhenius)
@@ -1219,15 +1214,20 @@ class KineticsFamily(Database):
                 if quantum_mechanics:
                     quantum_mechanics.run_jobs(item.reactants + item.products, procnum=procnum)
 
+            if entry.facet is None:
+                metal = entry.metal # could be None
+            else:
+                metal = entry.metal + entry.facet
+
             for reactant in item.reactants:
                 # Clear atom labels to avoid effects on thermo generation, ok because this is a deepcopy
                 reactant.molecule[0].clear_labeled_atoms()
                 reactant.generate_resonance_structures()
-                reactant.thermo = thermo_database.get_thermo_data(reactant, training_set=True, metal_to_scale_to=label)
+                reactant.thermo = thermo_database.get_thermo_data(reactant, training_set=True, metal_to_scale_to=metal)
             for product in item.products:
                 product.molecule[0].clear_labeled_atoms()
                 product.generate_resonance_structures()
-                product.thermo = thermo_database.get_thermo_data(product, training_set=True, metal_to_scale_to=label)
+                product.thermo = thermo_database.get_thermo_data(product, training_set=True, metal_to_scale_to=metal)
             # Now that we have the thermo, we can get the reverse k(T)
             item.kinetics = data
             data = item.generate_reverse_rate_coefficient()
