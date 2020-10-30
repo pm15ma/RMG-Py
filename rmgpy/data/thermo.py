@@ -1397,7 +1397,7 @@ class ThermoDatabase(object):
         :param metal_to_scale_to: the metal you want to scale to (string e.g 'Pt111' or None)
         :return: corrected thermo
         """
-        metal_db = rmgpy.data.rmg.database.surface.get_binding_energies
+        metal_db = rmgpy.data.rmg.database.surface
 
         if metal_to_scale_to is None:
             metal_to_scale_to_binding_energies = self.binding_energies
