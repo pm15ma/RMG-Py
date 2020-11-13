@@ -34,6 +34,7 @@ from rmgpy import settings
 from rmgpy.data.surface import MetalDatabase
 from rmgpy.data.base import Entry #DatabaseError
 from rmgpy.exceptions import DatabaseError
+from rmgpy.quantity import Energy, SurfaceConcentration
 
 ###################################################
 
@@ -57,12 +58,12 @@ class TestMetalDatabase(TestCase):
             index=1,
             label="Pt111",
             binding_energies={
-                'H': (-2.75367887E+00, 'eV/molecule'),
-                'C': (-7.02515507E+00, 'eV/molecule'),
-                'N': (-4.63224568E+00, 'eV/molecule'),
-                'O': (-3.81153179E+00, 'eV/molecule'),
+                'H': Energy(-2.75367887E+00, 'eV/molecule'),
+                'C': Energy(-7.02515507E+00, 'eV/molecule'),
+                'N': Energy(-4.63224568E+00, 'eV/molecule'),
+                'O': Energy(-3.81153179E+00, 'eV/molecule'),
             },
-            surface_site_density=(2.483E-09, 'mol/cm^2'),
+            surface_site_density=SurfaceConcentration(2.483E-09, 'mol/cm^2'),
             facet="111",
             metal="Pt",
             short_desc=u"fcc",
@@ -71,8 +72,8 @@ class TestMetalDatabase(TestCase):
             """,
         )
 
-        self.assertEqual(self.database.get_binding_energies(test_entry.label), test_entry.binding_energies)
-        self.assertEqual(self.database.get_surface_site_density(test_entry.label), test_entry.surface_site_density)
+        self.assertEqual(repr(self.database.get_binding_energies(test_entry.label)), repr(test_entry.binding_energies))
+        self.assertEqual(repr(self.database.get_surface_site_density(test_entry.label)), repr(test_entry.surface_site_density))
 
     def test_load_from_label(self):
         """Test we can obtain metal parameters from a string"""
